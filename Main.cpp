@@ -1,6 +1,6 @@
 //---------------------------------------
 // Program: Main.cpp
-// Purpose: Display penny image in 3 modes.
+// Purpose: Display a penny using OpenGL.
 // Author:  Fernanda Caero
 // Date:    Spring 2024
 //---------------------------------------
@@ -81,7 +81,6 @@ void init_penny_color()
       file >> B[i][j];
       // cout << Pz[i][j] << "\n";
    }
-
    // Close file
    file.close();
 }
@@ -162,11 +161,6 @@ void init()
    init_penny_depth();
    init_penny_color();
 
-
-   // Initialize smooth shading
-   glShadeModel(GL_SMOOTH);
-   init_light(GL_LIGHT0, 1, 1, 1, 1, 1, 1);
-
    // Initialize surface
    init_surface(-1.0, 1.0, -1.0, 1.0);
    init_normals();
@@ -179,19 +173,19 @@ void displayLineLoop()
    {
       for (int j = 0; j < SIZE-1; j++)
       {
-	 glBegin(GL_LINE_LOOP);
-	 glVertex3f(Px[i][j], Py[i][j], Pz[i][j] / 255);
-	 glVertex3f(Px[i + 1][j], Py[i + 1][j], Pz[i + 1][j] / 255);
-	 glVertex3f(Px[i + 1][j + 1], Py[i + 1][j + 1], Pz[i + 1][j + 1] / 255);
-	 glVertex3f(Px[i][j + 1], Py[i][j + 1], Pz[i][j + 1] / 255);
-	 glEnd();
+         glBegin(GL_LINE_LOOP);
+         glVertex3f(Px[i][j], Py[i][j], Pz[i][j] / 255);
+         glVertex3f(Px[i + 1][j], Py[i + 1][j], Pz[i + 1][j] / 255);
+         glVertex3f(Px[i + 1][j + 1], Py[i + 1][j + 1], Pz[i + 1][j + 1] / 255);
+         glVertex3f(Px[i][j + 1], Py[i][j + 1], Pz[i][j + 1] / 255);
+         glEnd();
       }
    }
 }
 
 void displayRGB()
 {
-   // Draw the surface RGB
+   // Draw the surface
    for (int i = 0; i < SIZE-1; i++)
    {
       for (int j = 0; j < SIZE-1; j++)
@@ -209,12 +203,16 @@ void displayRGB()
 
 void displayPhongShading()
 {
+      // Initialize smooth shading
+   glShadeModel(GL_SMOOTH);
+   init_light(GL_LIGHT0, 1, 1, 1, 1, 1, 1);
    // Initialize material properties
    init_material(Ka, Kd, Ks, 100 * Kp, 0.5, 0.5, 0.8);
    for (int i = 0; i < SIZE-1; i++)
    {
       for (int j = 0; j < SIZE-1; j++)
       {
+         // glColor3f(R[i][j] / 255, G[i][j] / 255, B[i][j] / 255);
 	      glBegin(GL_POLYGON);
 	      glNormal3f(Nx[i][j], Ny[i][j], Nz[i][j]);
 	      glVertex3f(Px[i][j], Py[i][j], Pz[i][j] / 255);
@@ -243,8 +241,6 @@ void display()
    glRotatef(yangle, 0.0, 1.0, 0.0);
    glRotatef(zangle, 0.0, 0.0, 1.0);
 
-
-
    if(displayMode == 0){
       displayLineLoop();
    } else if(displayMode == 1){
@@ -256,7 +252,6 @@ void display()
    {
       return;
    }
-
    glFlush();
 }
 
