@@ -1,9 +1,8 @@
 //---------------------------------------
-// Program: surface4.cpp
-// Purpose: Use Phong shading to display
-//          random wave surface model.
-// Author:  John Gauch
-// Date:    Spring 2012
+// Program: Main.cpp
+// Purpose: Display penny image in 3 modes.
+// Author:  Fernanda Caero
+// Date:    Spring 2024
 //---------------------------------------
 #include <math.h>
 #include <stdio.h>
@@ -40,6 +39,11 @@ float Nz[SIZE][SIZE];
 #include <fstream>
 using namespace std;
 
+float R[SIZE][SIZE];
+float G[SIZE][SIZE];
+float B[SIZE][SIZE];
+int displayMode = 0;
+
 //---------------------------------------
 // Initialize penny-depth.txt reading
 //---------------------------------------
@@ -47,17 +51,34 @@ void init_penny_depth()
 {
    // Open file
    ifstream file("penny-depth.txt");
-   // if (file.fail())
-   // {
-   //    printf("Error opening file\n");
-   //    exit(0);
-   // }
 
    // Read file
    for (int i = 0; i < SIZE; i++)
    for (int j = 0; j < SIZE; j++)
    {
       file >> Pz[i][j];
+      // cout << Pz[i][j] << "\n";
+   }
+
+   // Close file
+   file.close();
+}
+
+//---------------------------------------
+// Initialize penny-depth.txt reading
+//---------------------------------------
+void init_penny_color()
+{
+   // Open file
+   ifstream file("penny-image.txt");
+
+   // Read file
+   for (int i = 0; i < SIZE; i++)
+   for (int j = 0; j < SIZE; j++)
+   {
+      file >> R[i][j];
+      file >> G[i][j];
+      file >> B[i][j];
       // cout << Pz[i][j] << "\n";
    }
 
@@ -139,14 +160,73 @@ void init()
    glEnable(GL_DEPTH_TEST);
 
    init_penny_depth();
+   init_penny_color();
+
 
    // Initialize smooth shading
-   // glShadeModel(GL_SMOOTH);
-   // init_light(GL_LIGHT0, 1, 1, 1, 1, 1, 1);
+   glShadeModel(GL_SMOOTH);
+   init_light(GL_LIGHT0, 1, 1, 1, 1, 1, 1);
 
    // Initialize surface
-   // init_surface(-1.0, 1.0, -1.0, 1.0);
+   init_surface(-1.0, 1.0, -1.0, 1.0);
    init_normals();
+}
+
+void displayLineLoop()
+{
+   // Draw the surface
+   for (int i = 0; i < SIZE-1; i++)
+   {
+      for (int j = 0; j < SIZE-1; j++)
+      {
+	 glBegin(GL_LINE_LOOP);
+	 glVertex3f(Px[i][j], Py[i][j], Pz[i][j] / 255);
+	 glVertex3f(Px[i + 1][j], Py[i + 1][j], Pz[i + 1][j] / 255);
+	 glVertex3f(Px[i + 1][j + 1], Py[i + 1][j + 1], Pz[i + 1][j + 1] / 255);
+	 glVertex3f(Px[i][j + 1], Py[i][j + 1], Pz[i][j + 1] / 255);
+	 glEnd();
+      }
+   }
+}
+
+void displayRGB()
+{
+   // Draw the surface RGB
+   for (int i = 0; i < SIZE-1; i++)
+   {
+      for (int j = 0; j < SIZE-1; j++)
+      {
+         glColor3f(R[i][j] / 255, G[i][j] / 255, B[i][j] / 255);
+	      glBegin(GL_POLYGON);
+	      glVertex3f(Px[i][j], Py[i][j], Pz[i][j] / 255);
+         glVertex3f(Px[i + 1][j], Py[i + 1][j], Pz[i + 1][j] / 255);
+         glVertex3f(Px[i + 1][j + 1], Py[i + 1][j + 1], Pz[i + 1][j + 1] / 255);
+         glVertex3f(Px[i][j + 1], Py[i][j + 1], Pz[i][j + 1] / 255);
+         glEnd();
+      }
+   }
+}
+
+void displayPhongShading()
+{
+   // Initialize material properties
+   init_material(Ka, Kd, Ks, 100 * Kp, 0.5, 0.5, 0.8);
+   for (int i = 0; i < SIZE-1; i++)
+   {
+      for (int j = 0; j < SIZE-1; j++)
+      {
+	      glBegin(GL_POLYGON);
+	      glNormal3f(Nx[i][j], Ny[i][j], Nz[i][j]);
+	      glVertex3f(Px[i][j], Py[i][j], Pz[i][j] / 255);
+         glNormal3f(Nx[i + 1][j], Ny[i + 1][j], Nz[i + 1][j]);
+         glVertex3f(Px[i + 1][j], Py[i + 1][j], Pz[i + 1][j] / 255);
+         glNormal3f(Nx[i + 1][j + 1], Ny[i + 1][j + 1], Nz[i + 1][j + 1]);
+         glVertex3f(Px[i + 1][j + 1], Py[i + 1][j + 1], Pz[i + 1][j + 1] / 255);
+         glNormal3f(Nx[i][j + 1], Ny[i][j + 1], Nz[i][j + 1]);
+         glVertex3f(Px[i][j + 1], Py[i][j + 1], Pz[i][j + 1] / 255);
+         glEnd();
+      }
+   }
 }
 
 //---------------------------------------
@@ -163,25 +243,20 @@ void display()
    glRotatef(yangle, 0.0, 1.0, 0.0);
    glRotatef(zangle, 0.0, 0.0, 1.0);
 
-   // Initialize material properties
-   // init_material(Ka, Kd, Ks, 100 * Kp, 0.5, 0.5, 0.8);
 
-   // Draw the surface
-   for (int i = 0; i < SIZE-1; i++)
-      for (int j = 0; j < SIZE-1; j++)
-      {
-	 glBegin(GL_LINE_LOOP);
-	//  glBegin(GL_POLYGON);
-	//  glNormal3f(Nx[i][j], Ny[i][j], Nz[i][j]);
-	 glVertex3f(Px[i][j], Py[i][j], Pz[i][j] / 255);
-	//  glNormal3f(Nx[i + 1][j], Ny[i + 1][j], Nz[i + 1][j]);
-	 glVertex3f(Px[i + 1][j], Py[i + 1][j], Pz[i + 1][j] / 255);
-	//  glNormal3f(Nx[i + 1][j + 1], Ny[i + 1][j + 1], Nz[i + 1][j + 1]);
-	 glVertex3f(Px[i + 1][j + 1], Py[i + 1][j + 1], Pz[i + 1][j + 1] / 255);
-	//  glNormal3f(Nx[i][j + 1], Ny[i][j + 1], Nz[i][j + 1]);
-	 glVertex3f(Px[i][j + 1], Py[i][j + 1], Pz[i][j + 1] / 255);
-	 glEnd();
-      }
+
+   if(displayMode == 0){
+      displayLineLoop();
+   } else if(displayMode == 1){
+      displayRGB();
+   } else if(displayMode == 2){
+      displayPhongShading();
+   }
+   else 
+   {
+      return;
+   }
+
    glFlush();
 }
 
@@ -208,6 +283,19 @@ void keyboard(unsigned char key, int x, int y)
       printf
 	 ("Type x y z to decrease or X Y Z to increase TRANSLATION distance.\n");
       mode = TRANSLATE;
+   }
+
+   if(key == '0')
+   {
+      displayMode = 0;
+   }
+   else if(key == '1')
+   {
+      displayMode = 1;
+   }
+   else if(key == '2')
+   {
+      displayMode = 2;
    }
 
    // Handle ROTATE
